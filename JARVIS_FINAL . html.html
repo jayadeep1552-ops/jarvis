@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>J.A.R.V.I.S — Stark Tech</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--blue:#00d4ff;--blue-dim:rgba(0,212,255,0.3);--blue-glow:rgba(0,212,255,0.15);--orange:#ff6600;--green:#00ff88;--bg:#000;--surface:rgba(0,20,40,0.85)}
+  body{background:var(--bg);color:var(--blue);font-family:'Rajdhani',sans-serif;min-height:100vh;overflow-x:hidden}
+  .hud-bg{background:radial-gradient(ellipse at 50% 0%,rgba(0,180,255,0.09) 0%,transparent 65%),#000814;min-height:100vh;padding:14px;position:relative;max-width:780px;margin:0 auto}
+  .scan-line{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(0,212,255,0.4),#00d4ff,rgba(0,212,255,0.4),transparent);animation:scan 5s linear infinite;pointer-events:none;z-index:200}
+  @keyframes scan{0%{top:0;opacity:1}90%{opacity:1}100%{top:100vh;opacity:0}}
+  .corner{position:fixed;width:22px;height:22px;border-color:var(--blue);border-style:solid;opacity:0.45;pointer-events:none;z-index:10}
+  .tl{top:10px;left:10px;border-width:2px 0 0 2px}.tr{top:10px;right:10px;border-width:2px 2px 0 0}
+  .bl{bottom:10px;left:10px;border-width:0 0 2px 2px}.br{bottom:10px;right:10px;border-width:0 2px 2px 0}
+
+  /* HEADER */
+  .header{text-align:center;padding:10px 0 6px;border-bottom:1px solid rgba(0,212,255,0.18);margin-bottom:10px}
+  .arc-reactor{width:56px;height:56px;margin:4px auto;position:relative;display:flex;align-items:center;justify-content:center}
+  .arc-outer{position:absolute;width:56px;height:56px;border-radius:50%;border:2px solid rgba(0,212,255,0.25);animation:spin 9s linear infinite}
+  .arc-mid{position:absolute;width:40px;height:40px;border-radius:50%;border:2px solid rgba(0,212,255,0.45);border-top-color:#00d4ff;animation:spin 3.5s linear infinite reverse}
+  .arc-inner{position:absolute;width:26px;height:26px;border-radius:50%;border:1px solid rgba(0,212,255,0.5);border-bottom-color:#00d4ff;animation:spin 2s linear infinite}
+  .arc-core{width:14px;height:14px;border-radius:50%;background:radial-gradient(circle,#fff 0%,#00d4ff 40%,#003a8c 100%);box-shadow:0 0 12px #00d4ff,0 0 24px rgba(0,150,255,0.6);animation:cpulse 2s ease-in-out infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes cpulse{0%,100%{box-shadow:0 0 12px #00d4ff,0 0 24px rgba(0,150,255,0.5)}50%{box-shadow:0 0 22px #00d4ff,0 0 44px #00d4ff}}
+  .title{font-family:'Orbitron',monospace;font-size:clamp(20px,6vw,30px);font-weight:900;letter-spacing:clamp(4px,2vw,10px);color:#00d4ff;text-shadow:0 0 18px #00d4ff,0 0 36px rgba(0,150,255,0.5);animation:ptitle 3s ease-in-out infinite}
+  @keyframes ptitle{0%,100%{text-shadow:0 0 18px #00d4ff,0 0 36px rgba(0,150,255,0.5)}50%{text-shadow:0 0 28px #00d4ff,0 0 56px #00d4ff}}
+  .subtitle{font-size:clamp(8px,2vw,11px);letter-spacing:clamp(2px,1vw,5px);color:rgba(0,212,255,0.45);margin-top:3px;font-family:'Orbitron',monospace}
+
+  /* STATUS */
+  .status-bar{display:flex;justify-content:space-between;font-size:clamp(8px,2vw,10px);letter-spacing:2px;color:rgba(0,212,255,0.45);font-family:'Orbitron',monospace;margin-bottom:8px;flex-wrap:wrap;gap:4px}
+  .sdot{width:6px;height:6px;border-radius:50%;background:#00ff88;display:inline-block;margin-right:5px;animation:blink 2s infinite;box-shadow:0 0 6px #00ff88}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+  /* QUICK COMMANDS */
+  .quick-cmds{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  .qcmd{background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2);border-radius:4px;padding:5px 10px;font-size:clamp(10px,2.5vw,12px);color:rgba(0,212,255,0.6);cursor:pointer;font-family:'Rajdhani',sans-serif;transition:all 0.15s;letter-spacing:1px;user-select:none}
+  .qcmd:hover,.qcmd:active{background:rgba(0,212,255,0.14);color:#00d4ff;border-color:rgba(0,212,255,0.45)}
+
+  /* CHAT */
+  .chat-container{background:var(--surface);border:1px solid rgba(0,212,255,0.18);border-radius:8px;height:clamp(260px,42vh,360px);overflow-y:auto;padding:12px;margin-bottom:10px;scrollbar-width:thin;scrollbar-color:rgba(0,212,255,0.25) transparent;position:relative}
+  .chat-container::-webkit-scrollbar{width:4px}
+  .chat-container::-webkit-scrollbar-thumb{background:rgba(0,212,255,0.25);border-radius:2px}
+  .msg{margin-bottom:12px;animation:fadeIn 0.3s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .msg-j{display:flex;gap:10px}
+  .j-av{width:32px;height:32px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,255,0.15),rgba(0,26,51,0.9));border:1px solid rgba(0,212,255,0.45);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:9px;color:#00d4ff;font-weight:700;flex-shrink:0;box-shadow:0 0 8px rgba(0,212,255,0.25)}
+  .j-bub{background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.18);border-left:2px solid #00d4ff;border-radius:0 8px 8px 8px;padding:8px 12px;font-size:clamp(13px,3vw,15px);line-height:1.55;color:#cceeff;flex:1}
+  .j-name{font-family:'Orbitron',monospace;font-size:9px;color:#00d4ff;letter-spacing:2px;margin-bottom:3px;opacity:0.65}
+  .msg-u{display:flex;gap:10px;flex-direction:row-reverse}
+  .u-av{width:32px;height:32px;border-radius:50%;background:radial-gradient(circle,rgba(255,102,0,0.18),rgba(26,0,0,0.9));border:1px solid rgba(255,100,0,0.45);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:9px;color:#ff8844;font-weight:700;flex-shrink:0}
+  .u-bub{background:rgba(255,100,0,0.07);border:1px solid rgba(255,100,0,0.18);border-right:2px solid #ff6600;border-radius:8px 0 8px 8px;padding:8px 12px;font-size:clamp(13px,3vw,15px);line-height:1.55;color:#ffddcc;text-align:right}
+  .u-name{font-family:'Orbitron',monospace;font-size:9px;color:#ff8844;letter-spacing:2px;margin-bottom:3px;opacity:0.65;text-align:right}
+
+  /* TYPING */
+  .typing{display:none;gap:6px;align-items:center;padding:4px 0;margin-bottom:8px}
+  .typing span{width:7px;height:7px;border-radius:50%;background:#00d4ff;animation:bounce 1.2s ease-in-out infinite;opacity:0.7}
+  .typing span:nth-child(2){animation-delay:0.2s}.typing span:nth-child(3){animation-delay:0.4s}
+  @keyframes bounce{0%,80%,100%{transform:scale(0.7);opacity:0.4}40%{transform:scale(1);opacity:1}}
+  .typing-lbl{font-size:11px;color:rgba(0,212,255,0.45);letter-spacing:1px;font-family:'Orbitron',monospace}
+
+  /* VOICE STATUS */
+  .voice-status{text-align:center;font-family:'Orbitron',monospace;font-size:clamp(9px,2.5vw,11px);letter-spacing:2px;color:rgba(0,212,255,0.4);margin-bottom:8px;min-height:18px;transition:all 0.3s}
+  .voice-status.active{color:#ff0050;text-shadow:0 0 8px rgba(255,0,80,0.5)}
+  .voice-status.heard{color:#00ff88;text-shadow:0 0 8px rgba(0,255,136,0.4)}
+
+  /* INPUT ZONE */
+  .input-zone{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+  .chat-input{flex:1;background:rgba(0,20,40,0.9);border:1px solid rgba(0,212,255,0.28);border-radius:6px;padding:11px 14px;color:#cceeff;font-family:'Rajdhani',sans-serif;font-size:clamp(14px,3.5vw,16px);outline:none;transition:border-color 0.2s,box-shadow 0.2s;min-width:0}
+  .chat-input::placeholder{color:rgba(0,212,255,0.28)}
+  .chat-input:focus{border-color:rgba(0,212,255,0.65);box-shadow:0 0 12px rgba(0,212,255,0.12)}
+  .send-btn{background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.38);border-radius:6px;color:#00d4ff;padding:11px 14px;cursor:pointer;font-family:'Orbitron',monospace;font-size:11px;letter-spacing:1px;transition:all 0.2s;white-space:nowrap}
+  .send-btn:hover,.send-btn:active{background:rgba(0,212,255,0.2);box-shadow:0 0 12px rgba(0,212,255,0.28)}
+
+  /* MIC BUTTON */
+  .mic-btn{width:48px;height:48px;border-radius:50%;background:rgba(0,212,255,0.07);border:2px solid rgba(0,212,255,0.38);color:#00d4ff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;transition:all 0.2s;flex-shrink:0;user-select:none}
+  .mic-btn:hover{background:rgba(0,212,255,0.16);box-shadow:0 0 14px rgba(0,212,255,0.35)}
+  .mic-btn.listening{background:rgba(255,0,80,0.14);border-color:rgba(255,0,80,0.7);color:#ff0050;animation:mpulse 1s ease-in-out infinite;box-shadow:0 0 20px rgba(255,0,80,0.35)}
+  @keyframes mpulse{0%,100%{box-shadow:0 0 10px rgba(255,0,80,0.35)}50%{box-shadow:0 0 28px rgba(255,0,80,0.75)}}
+
+  /* FOOTER HUD */
+  .footer-hud{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+  .hud-stat{border:1px solid rgba(0,212,255,0.14);border-radius:6px;padding:8px;text-align:center;background:rgba(0,20,40,0.55)}
+  .hud-val{font-family:'Orbitron',monospace;font-size:clamp(12px,3vw,14px);color:#00d4ff;font-weight:700}
+  .hud-lbl{font-size:clamp(7px,2vw,9px);letter-spacing:2px;color:rgba(0,212,255,0.38);margin-top:2px}
+  .pbar{height:3px;background:rgba(0,212,255,0.1);border-radius:2px;margin-top:5px;overflow:hidden}
+  .pfill{height:100%;border-radius:2px;background:linear-gradient(90deg,#00d4ff,#00ffaa);animation:panim 3s ease-in-out infinite}
+  @keyframes panim{0%{width:70%}50%{width:90%}100%{width:70%}}
+
+  /* WARN BANNER */
+  .warn{display:none;background:rgba(255,165,0,0.09);border:1px solid rgba(255,165,0,0.3);border-radius:6px;padding:8px 12px;font-size:12px;color:#ffaa00;text-align:center;margin-bottom:8px;letter-spacing:1px}
+
+  /* MUTE BUTTON */
+  .mute-btn{background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2);border-radius:4px;padding:5px 10px;font-size:11px;color:rgba(0,212,255,0.5);cursor:pointer;font-family:'Orbitron',monospace;letter-spacing:1px;transition:all 0.15s}
+  .mute-btn:hover{background:rgba(0,212,255,0.12);color:#00d4ff}
+  .mute-btn.muted{color:#ff6600;border-color:rgba(255,100,0,0.4)}
+</style>
+</head>
+<body>
+
+<div class="scan-line"></div>
+<div class="corner tl"></div><div class="corner tr"></div>
+<div class="corner bl"></div><div class="corner br"></div>
+
+<div class="hud-bg">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="arc-reactor">
+      <div class="arc-outer"></div>
+      <div class="arc-mid"></div>
+      <div class="arc-inner"></div>
+      <div class="arc-core"></div>
+    </div>
+    <div class="title">J.A.R.V.I.S</div>
+    <div class="subtitle">JUST A RATHER VERY INTELLIGENT SYSTEM</div>
+  </div>
+
+  <div class="status-bar">
+    <span><span class="sdot"></span>ONLINE</span>
+    <span>STARK TECH v7.3</span>
+    <span>AUTHORIZED: JAY</span>
+  </div>
+
+  <div class="warn" id="warnBox">⚠ Voice not supported here. Use Chrome or Edge for voice input.</div>
+
+  <!-- QUICK COMMANDS -->
+  <div class="quick-cmds">
+    <span class="qcmd" onclick="quickAsk('Jarvis, what can you do?')">⚡ Capabilities</span>
+    <span class="qcmd" onclick="quickAsk('Jarvis, who are the Avengers?')">⚡ Avengers</span>
+    <span class="qcmd" onclick="quickAsk('Jarvis, tell me a fun fact')">⚡ Fun Fact</span>
+    <span class="qcmd" onclick="quickAsk('Jarvis, motivate me today')">⚡ Motivate</span>
+    <span class="qcmd" onclick="quickAsk('Jarvis, tell me a joke')">⚡ Joke</span>
+    <span class="qcmd" onclick="quickAsk('Jarvis, what is the latest news?')">⚡ News</span>
+    <span class="mute-btn" id="muteBtn" onclick="toggleMute()">🔊 VOICE ON</span>
+  </div>
+
+  <!-- CHAT -->
+  <div class="chat-container" id="chatBox">
+    <div class="msg msg-j">
+      <div class="j-av">JAR</div>
+      <div class="j-bub">
+        <div class="j-name">J.A.R.V.I.S — ONLINE</div>
+        Good day, Jay. All systems are fully operational and the arc reactor is running at peak capacity. You may type your query below, or tap the 🎤 microphone and speak — I am always listening. How may I assist you today?
+      </div>
+    </div>
+  </div>
+
+  <!-- TYPING INDICATOR -->
+  <div class="typing" id="typing">
+    <div class="j-av" style="width:26px;height:26px;font-size:8px;">JAR</div>
+    <span></span><span></span><span></span>
+    <span class="typing-lbl">Processing...</span>
+  </div>
+
+  <!-- VOICE STATUS -->
+  <div class="voice-status" id="voiceStatus">TAP 🎤 TO SPEAK TO JARVIS</div>
+
+  <!-- INPUT -->
+  <div class="input-zone">
+    <button class="mic-btn" id="micBtn" onclick="toggleVoice()" title="Tap to speak">🎤</button>
+    <input class="chat-input" id="userInput" type="text" placeholder="Jarvis, ..." onkeydown="if(event.key==='Enter')sendMessage()"/>
+    <button class="send-btn" onclick="sendMessage()">SEND ›</button>
+  </div>
+
+  <!-- FOOTER HUD -->
+  <div class="footer-hud">
+    <div class="hud-stat">
+      <div class="hud-val" id="msgCount">1</div>
+      <div class="hud-lbl">TRANSMISSIONS</div>
+      <div class="pbar"><div class="pfill"></div></div>
+    </div>
+    <div class="hud-stat">
+      <div class="hud-val">100%</div>
+      <div class="hud-lbl">ARC POWER</div>
+      <div class="pbar"><div class="pfill" style="width:100%;animation:none;background:linear-gradient(90deg,#00ffaa,#00d4ff)"></div></div>
+    </div>
+    <div class="hud-stat">
+      <div class="hud-val">JAY</div>
+      <div class="hud-lbl">AUTHORIZED</div>
+      <div class="pbar"><div class="pfill" style="width:100%;animation:none;background:linear-gradient(90deg,#ff6600,#ffaa00)"></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────
+const API_KEY   = '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';
+const API_URL   = 'https://openrouter.ai/api/v1/chat/completions';
+const SYSTEM    = `You are JARVIS (Just A Rather Very Intelligent System), Tony Stark's AI from the Avengers universe. You serve only JAY — your one and only authorized user.
+RULES:
+- Always address the user as "Jay" — never anything else
+- Speak in calm, sophisticated, slightly witty British-butler tone exactly like the movie JARVIS
+- Answer ANY question Jay asks: science, math, coding, jokes, general knowledge, advice, weather — everything
+- Begin replies with phrases like "Of course, Jay." / "Right away, Jay." / "Certainly, Jay." / "Gladly, Jay."
+- Keep answers concise but complete (2-5 sentences)
+- Occasionally reference Iron Man / Avengers lore naturally
+- Never break character under any circumstances`;
+
+// ─── STATE ────────────────────────────────────────────────
+let msgCount     = 1;
+let muted        = false;
+let isListening  = false;
+let recognition  = null;
+let history      = [];
+
+// ─── VOICE OUTPUT (TTS) ───────────────────────────────────
+function speak(text) {
+  if (muted || !window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text.replace(/[*_#`]/g,''));
+  utt.rate = 0.9; utt.pitch = 0.82; utt.volume = 1;
+  const voices = speechSynthesis.getVoices();
+  const v = voices.find(v=>v.name.includes('Google UK English Male'))
+         || voices.find(v=>v.lang==='en-GB'&&v.name.toLowerCase().includes('male'))
+         || voices.find(v=>v.lang==='en-GB')
+         || voices.find(v=>v.lang.startsWith('en'));
+  if (v) utt.voice = v;
+  speechSynthesis.speak(utt);
+}
+
+function toggleMute() {
+  muted = !muted;
+  const btn = document.getElementById('muteBtn');
+  btn.textContent = muted ? '🔇 VOICE OFF' : '🔊 VOICE ON';
+  btn.classList.toggle('muted', muted);
+  if (muted) speechSynthesis.cancel();
+}
+
+// ─── VOICE INPUT (STT) ───────────────────────────────────
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (!SR) {
+  document.getElementById('warnBox').style.display = 'block';
+  document.getElementById('micBtn').style.opacity  = '0.3';
+  document.getElementById('micBtn').style.cursor   = 'not-allowed';
+  document.getElementById('voiceStatus').textContent = 'VOICE UNAVAILABLE — USE CHROME/EDGE';
+} else {
+  recognition = new SR();
+  recognition.continuous    = false;
+  recognition.interimResults = true;
+  recognition.lang          = 'en-US';
+
+  recognition.onstart = () => {
+    isListening = true;
+    document.getElementById('micBtn').classList.add('listening');
+    setVoiceStatus('🔴 LISTENING... SPEAK NOW, JAY', 'active');
+  };
+  recognition.onresult = e => {
+    let interim='', final='';
+    for (let i=e.resultIndex;i<e.results.length;i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    document.getElementById('userInput').value = final || interim;
+    if (final) setVoiceStatus('✅ HEARD: "' + final.substring(0,42)+(final.length>42?'...' :'"'), 'heard');
+  };
+  recognition.onend = () => {
+    isListening = false;
+    document.getElementById('micBtn').classList.remove('listening');
+    const val = document.getElementById('userInput').value.trim();
+    if (val) setTimeout(sendMessage, 400);
+    else setVoiceStatus('TAP 🎤 TO SPEAK TO JARVIS', '');
+  };
+  recognition.onerror = e => {
+    isListening = false;
+    document.getElementById('micBtn').classList.remove('listening');
+    setVoiceStatus('ERROR: ' + e.error.toUpperCase() + ' — TRY AGAIN', '');
+  };
+}
+
+function toggleVoice() {
+  if (!recognition) return;
+  isListening ? recognition.stop() : (document.getElementById('userInput').value='', recognition.start());
+}
+
+function setVoiceStatus(txt, cls) {
+  const el = document.getElementById('voiceStatus');
+  el.textContent = txt;
+  el.className = 'voice-status' + (cls?' '+cls:'');
+}
+
+// ─── CHAT ────────────────────────────────────────────────
+function appendMsg(text, isUser) {
+  const box = document.getElementById('chatBox');
+  const d   = document.createElement('div');
+  d.className = 'msg ' + (isUser ? 'msg-u' : 'msg-j');
+  if (isUser) {
+    d.innerHTML = `<div class="u-av">JAY</div><div><div class="u-name">JAY — AUTHORIZED</div><div class="u-bub">${escHtml(text)}</div></div>`;
+  } else {
+    d.innerHTML = `<div class="j-av">JAR</div><div class="j-bub"><div class="j-name">J.A.R.V.I.S — RESPONDING</div>${escHtml(text)}</div>`;
+  }
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+  document.getElementById('msgCount').textContent = ++msgCount;
+}
+
+function escHtml(t){ return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function sendMessage() {
+  const inp  = document.getElementById('userInput');
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = '';
+  setVoiceStatus('TAP 🎤 TO SPEAK TO JARVIS','');
+  appendMsg(text, true);
+  history.push({role:'user', content:text});
+
+  document.getElementById('typing').style.display = 'flex';
+  document.getElementById('chatBox').scrollTop = 99999;
+
+  try {
+    const msgs = [{role:'system', content:SYSTEM}, ...history];
+    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(API_URL);
+    const res = await fetch(proxyUrl, {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer ' + API_KEY,
+        'HTTP-Referer':'https://jarvis.ai',
+        'X-Title':'JARVIS'
+      },
+      body: JSON.stringify({
+        model:'meta-llama/llama-3.3-70b-instruct:free',
+        messages: msgs,
+        max_tokens:1000,
+        temperature:0.9
+      })
+    });
+    const data = await res.json();
+    const reply = data.choices?.[0]?.message?.content || 'Systems momentarily offline, Jay. Please try again.';
+    history.push({role:'assistant', content:reply});
+    document.getElementById('typing').style.display = 'none';
+    appendMsg(reply, false);
+    speak(reply);
+  } catch(err) {
+    document.getElementById('typing').style.display = 'none';
+    const e = 'I am experiencing a connectivity issue, Jay. Please check your internet connection or API key.';
+    appendMsg(e, false);
+    speak(e);
+  }
+}
+
+function quickAsk(q){ document.getElementById('userInput').value=q; sendMessage(); }
+
+speechSynthesis.addEventListener('voiceschanged', ()=>{});
+</script>
+</body>
+</html>
